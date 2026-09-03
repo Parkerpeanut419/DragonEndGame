@@ -1,0 +1,5 @@
+name: DragonEndgame
+version: 1.0.0
+main: com.parker.dragonendgame.DragonEndgame
+api-version: '26.2'
+description: Endgame Dragon Egg duplication and future custom recipes.
