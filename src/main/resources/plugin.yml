@@ -1,5 +1,6 @@
-name: DragonEndgame
+name: VeylixAscension
 version: 1.0.0
-main: com.parker.dragonendgame.DragonEndgame
+main: com.veylixgames.ascension.VeylixAscension
 api-version: '26.2'
-description: Endgame Dragon Egg duplication and future custom recipes.
+description: End-focused progression from Netherite to Enderite and Ascendant gear.
+author: Veylix Games

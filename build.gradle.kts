@@ -7,7 +7,10 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
+    maven {
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
 }
 
 dependencies {
@@ -18,6 +21,6 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
+tasks.jar {
+    archiveBaseName.set("DragonEndgame")
 }

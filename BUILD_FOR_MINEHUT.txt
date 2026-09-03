@@ -1,0 +1,31 @@
+DRAGON ENDGAME - ONE PLUGIN
+
+This project targets Paper 26.2 and Java 25.
+
+Features currently included:
+1. Dragon Egg duplication:
+   Dragon Egg surrounded by 8 Netherite Blocks -> 2 Dragon Eggs.
+
+2. Ascendant Ingot:
+   Netherite Blocks + Dragon Eggs + Heavy Cores + Nether Stars.
+   This is intentionally very expensive.
+
+3. Ascendant armor and tools:
+   Stronger than normal Netherite.
+
+4. Ascendant Elytra:
+   Ascendant Chestplate + Elytra -> Ascendant Elytra.
+   The result is an Elytra with additional armor attributes, so it remains an Elytra
+   while providing endgame protection.
+
+BUILD:
+The included GitHub Actions workflow automatically installs Java 25 and builds the
+plugin. GitHub Actions can upload the resulting JAR as a workflow artifact.
+
+MINEHUT:
+Upload the resulting DragonEndgame-1.0.0.jar into the server's plugins folder,
+then restart the server.
+
+IMPORTANT:
+This first build is intentionally a functional core. Before putting it on your
+main world, test it in a backup/test world.
