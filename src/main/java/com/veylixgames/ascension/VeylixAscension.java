@@ -4,10 +4,8 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
@@ -34,34 +32,30 @@ public class VeylixAscension extends JavaPlugin implements Listener {
         getLogger().info("Veylix Ascension enabled!");
     }
 
-    private ItemStack taggedItem(Material material, NamespacedKey key,
-                                  String name, List<String> lore) {
+    private ItemStack customIngot(
+            Material material,
+            NamespacedKey key,
+            String name,
+            List<String> lore
+    ) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
 
         meta.setDisplayName(name);
         meta.setLore(lore);
-        meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+
+        meta.getPersistentDataContainer().set(
+                key,
+                PersistentDataType.BYTE,
+                (byte) 1
+        );
 
         item.setItemMeta(meta);
         return item;
     }
 
-    private boolean isTagged(ItemStack item, NamespacedKey key) {
-        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) {
-            return false;
-        }
-
-        ItemMeta meta = item.getItemMeta();
-
-        return meta.getPersistentDataContainer().has(
-                key,
-                PersistentDataType.BYTE
-        );
-    }
-
     private ItemStack enderite() {
-        return taggedItem(
+        return customIngot(
                 Material.NETHERITE_INGOT,
                 enderiteKey,
                 "§5Enderite Ingot",
@@ -70,7 +64,7 @@ public class VeylixAscension extends JavaPlugin implements Listener {
     }
 
     private ItemStack ascendant() {
-        return taggedItem(
+        return customIngot(
                 Material.NETHERITE_INGOT,
                 ascendantKey,
                 "§dAscendant Ingot",
@@ -84,68 +78,63 @@ public class VeylixAscension extends JavaPlugin implements Listener {
 
     private void registerRecipes() {
 
-        /*
-         * DRAGON EGG DUPLICATION
-         *
-         * N N N
-         * N E N
-         * N N N
-         *
-         * 1 Dragon Egg -> 2 Dragon Eggs
-         */
+        // =========================
+        // DRAGON EGG DUPLICATION
+        // =========================
 
         ShapedRecipe dragonEgg = new ShapedRecipe(
                 new NamespacedKey(this, "dragon_egg_duplication"),
                 new ItemStack(Material.DRAGON_EGG, 2)
         );
 
-        dragonEgg.shape("NNN", "NEN", "NNN");
+        dragonEgg.shape(
+                "NNN",
+                "NEN",
+                "NNN"
+        );
+
         dragonEgg.setIngredient('N', Material.NETHERITE_BLOCK);
         dragonEgg.setIngredient('E', Material.DRAGON_EGG);
 
         getServer().addRecipe(dragonEgg);
 
 
-        /*
-         * NETHER STAR DUPLICATION
-         *
-         * N N N
-         * N S N
-         * N N N
-         *
-         * 1 Nether Star -> 2 Nether Stars
-         */
+        // =========================
+        // NETHER STAR DUPLICATION
+        // =========================
 
         ShapedRecipe netherStar = new ShapedRecipe(
                 new NamespacedKey(this, "nether_star_duplication"),
                 new ItemStack(Material.NETHER_STAR, 2)
         );
 
-        netherStar.shape("NNN", "NSN", "NNN");
+        netherStar.shape(
+                "NNN",
+                "NSN",
+                "NNN"
+        );
+
         netherStar.setIngredient('N', Material.NETHERITE_BLOCK);
         netherStar.setIngredient('S', Material.NETHER_STAR);
 
         getServer().addRecipe(netherStar);
 
 
-        /*
-         * ENDERITE INGOT
-         *
-         * S E S
-         * E N E
-         * S E S
-         *
-         * S = Shulker Shell
-         * E = Ender Pearl
-         * N = Netherite Ingot
-         */
+        // =========================
+        // ENDERITE INGOT
+        // =========================
 
         ShapedRecipe enderiteRecipe = new ShapedRecipe(
                 new NamespacedKey(this, "enderite_ingot"),
                 enderite()
         );
 
-        enderiteRecipe.shape("SES", "ENE", "SES");
+        enderiteRecipe.shape(
+                "SES",
+                "ENE",
+                "SES"
+        );
+
         enderiteRecipe.setIngredient('S', Material.SHULKER_SHELL);
         enderiteRecipe.setIngredient('E', Material.ENDER_PEARL);
         enderiteRecipe.setIngredient('N', Material.NETHERITE_INGOT);
@@ -153,99 +142,116 @@ public class VeylixAscension extends JavaPlugin implements Listener {
         getServer().addRecipe(enderiteRecipe);
 
 
-        /*
-         * ASCENDANT INGOT
-         *
-         * A A A
-         * A N A
-         * A A A
-         *
-         * A = Enderite
-         * N = Nether Star
-         */
+        // =========================
+        // ASCENDANT INGOT
+        // =========================
 
         ShapedRecipe ascendantRecipe = new ShapedRecipe(
                 new NamespacedKey(this, "ascendant_ingot"),
                 ascendant()
         );
 
-        ascendantRecipe.shape("AAA", "ANA", "AAA");
+        ascendantRecipe.shape(
+                "AAA",
+                "ANA",
+                "AAA"
+        );
+
         ascendantRecipe.setIngredient('A', exact(enderite()));
         ascendantRecipe.setIngredient('N', Material.NETHER_STAR);
 
         getServer().addRecipe(ascendantRecipe);
 
 
-        registerArmor();
-        registerTools();
+        registerEnderiteElytra();
+        registerAscendantArmor();
+        registerAscendantTools();
         registerAscendantElytra();
     }
 
 
-    private ItemStack gear(Material material, String name, String keyName,
-                           double armor, double toughness, double knockback) {
+    // =========================================================
+    // ENDERITE ELYTRA
+    // =========================================================
 
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
+    private void registerEnderiteElytra() {
 
-        meta.setDisplayName(name);
-        meta.setLore(List.of("§7Forged by Veylix Games."));
+        ItemStack elytra = new ItemStack(Material.ELYTRA);
+        ItemMeta meta = elytra.getItemMeta();
 
-        NamespacedKey key = new NamespacedKey(this, keyName);
+        meta.setDisplayName("§5Enderite Elytra");
+        meta.setLore(List.of(
+                "§7An Elytra enhanced with Enderite.",
+                "§7Flight retained."
+        ));
+
+        NamespacedKey key = new NamespacedKey(this, "enderite_elytra");
+
         meta.getPersistentDataContainer().set(
                 key,
                 PersistentDataType.BYTE,
                 (byte) 1
         );
 
-        if (armor != 0) {
-            meta.addAttributeModifier(
-                    Attribute.ARMOR,
-                    new AttributeModifier(
-                            new NamespacedKey(this, keyName + "_armor"),
-                            armor,
-                            AttributeModifier.Operation.ADD_NUMBER,
-                            org.bukkit.inventory.EquipmentSlotGroup.ARMOR
-                    )
-            );
-        }
+        meta.addAttributeModifier(
+                Attribute.ARMOR,
+                new AttributeModifier(
+                        new NamespacedKey(this, "enderite_elytra_armor"),
+                        8,
+                        AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.CHEST
+                )
+        );
 
-        if (toughness != 0) {
-            meta.addAttributeModifier(
-                    Attribute.ARMOR_TOUGHNESS,
-                    new AttributeModifier(
-                            new NamespacedKey(this, keyName + "_toughness"),
-                            toughness,
-                            AttributeModifier.Operation.ADD_NUMBER,
-                            org.bukkit.inventory.EquipmentSlotGroup.ARMOR
-                    )
-            );
-        }
+        meta.addAttributeModifier(
+                Attribute.ARMOR_TOUGHNESS,
+                new AttributeModifier(
+                        new NamespacedKey(this, "enderite_elytra_toughness"),
+                        4,
+                        AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.CHEST
+                )
+        );
 
-        if (knockback != 0) {
-            meta.addAttributeModifier(
-                    Attribute.KNOCKBACK_RESISTANCE,
-                    new AttributeModifier(
-                            new NamespacedKey(this, keyName + "_knockback"),
-                            knockback,
-                            AttributeModifier.Operation.ADD_NUMBER,
-                            org.bukkit.inventory.EquipmentSlotGroup.ARMOR
-                    )
-            );
-        }
+        meta.addAttributeModifier(
+                Attribute.KNOCKBACK_RESISTANCE,
+                new AttributeModifier(
+                        new NamespacedKey(this, "enderite_elytra_knockback"),
+                        0.15,
+                        AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.CHEST
+                )
+        );
 
-        item.setItemMeta(meta);
-        return item;
+        elytra.setItemMeta(meta);
+
+        ShapelessRecipe recipe = new ShapelessRecipe(
+                new NamespacedKey(this, "enderite_elytra"),
+                elytra
+        );
+
+        recipe.addIngredient(exact(enderite()));
+        recipe.addIngredient(Material.ELYTRA);
+
+        getServer().addRecipe(recipe);
     }
 
 
-    private void registerArmor() {
+    // =========================================================
+    // ASCENDANT ARMOR
+    // =========================================================
 
-        ItemStack helmet = gear(
+    private void registerAscendantArmor() {
+
+        // HELMET
+
+        ItemStack helmet = armor(
                 Material.NETHERITE_HELMET,
                 "§dAscendant Helmet",
                 "ascendant_helmet",
-                4, 4, 0.1
+                4,
+                4,
+                0.10
         );
 
         ShapedRecipe helmetRecipe = new ShapedRecipe(
@@ -253,16 +259,26 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                 helmet
         );
 
-        helmetRecipe.shape("AAA", "A A", "   ");
+        helmetRecipe.shape(
+                "AAA",
+                "A A",
+                "   "
+        );
+
         helmetRecipe.setIngredient('A', exact(ascendant()));
+
         getServer().addRecipe(helmetRecipe);
 
 
-        ItemStack chestplate = gear(
+        // CHESTPLATE
+
+        ItemStack chestplate = armor(
                 Material.NETHERITE_CHESTPLATE,
                 "§dAscendant Chestplate",
                 "ascendant_chestplate",
-                9, 4, 0.1
+                9,
+                4,
+                0.10
         );
 
         ShapedRecipe chestRecipe = new ShapedRecipe(
@@ -270,16 +286,26 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                 chestplate
         );
 
-        chestRecipe.shape("A A", "AAA", "AAA");
+        chestRecipe.shape(
+                "A A",
+                "AAA",
+                "AAA"
+        );
+
         chestRecipe.setIngredient('A', exact(ascendant()));
+
         getServer().addRecipe(chestRecipe);
 
 
-        ItemStack leggings = gear(
+        // LEGGINGS
+
+        ItemStack leggings = armor(
                 Material.NETHERITE_LEGGINGS,
                 "§dAscendant Leggings",
                 "ascendant_leggings",
-                7, 4, 0.1
+                7,
+                4,
+                0.10
         );
 
         ShapedRecipe legsRecipe = new ShapedRecipe(
@@ -287,16 +313,26 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                 leggings
         );
 
-        legsRecipe.shape("AAA", "A A", "A A");
+        legsRecipe.shape(
+                "AAA",
+                "A A",
+                "A A"
+        );
+
         legsRecipe.setIngredient('A', exact(ascendant()));
+
         getServer().addRecipe(legsRecipe);
 
 
-        ItemStack boots = gear(
+        // BOOTS
+
+        ItemStack boots = armor(
                 Material.NETHERITE_BOOTS,
                 "§dAscendant Boots",
                 "ascendant_boots",
-                4, 4, 0.1
+                4,
+                4,
+                0.10
         );
 
         ShapedRecipe bootsRecipe = new ShapedRecipe(
@@ -304,53 +340,141 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                 boots
         );
 
-        bootsRecipe.shape("   ", "A A", "A A");
+        bootsRecipe.shape(
+                "   ",
+                "A A",
+                "A A"
+        );
+
         bootsRecipe.setIngredient('A', exact(ascendant()));
+
         getServer().addRecipe(bootsRecipe);
     }
 
 
-    private void registerTools() {
+    private ItemStack armor(
+            Material material,
+            String name,
+            String keyName,
+            double armor,
+            double toughness,
+            double knockback
+    ) {
 
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+
+        meta.setDisplayName(name);
+        meta.setLore(List.of("§7An Ascendant-tier armor piece."));
+
+        NamespacedKey key = new NamespacedKey(this, keyName);
+
+        meta.getPersistentDataContainer().set(
+                key,
+                PersistentDataType.BYTE,
+                (byte) 1
+        );
+
+        meta.addAttributeModifier(
+                Attribute.ARMOR,
+                new AttributeModifier(
+                        new NamespacedKey(this, keyName + "_armor"),
+                        armor,
+                        AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.ARMOR
+                )
+        );
+
+        meta.addAttributeModifier(
+                Attribute.ARMOR_TOUGHNESS,
+                new AttributeModifier(
+                        new NamespacedKey(this, keyName + "_toughness"),
+                        toughness,
+                        AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.ARMOR
+                )
+        );
+
+        meta.addAttributeModifier(
+                Attribute.KNOCKBACK_RESISTANCE,
+                new AttributeModifier(
+                        new NamespacedKey(this, keyName + "_knockback"),
+                        knockback,
+                        AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.ARMOR
+                )
+        );
+
+        item.setItemMeta(meta);
+
+        return item;
+    }
+
+
+    // =========================================================
+    // ASCENDANT TOOLS
+    // =========================================================
+
+    private void registerAscendantTools() {
+
+        // SWORD
         registerTool(
                 Material.NETHERITE_SWORD,
                 "§dAscendant Sword",
                 "ascendant_sword",
-                new String[]{"A", "A", "S"}
+                new String[]{"A", "A", "S"},
+                11
         );
 
+
+        // PICKAXE
         registerTool(
                 Material.NETHERITE_PICKAXE,
                 "§dAscendant Pickaxe",
                 "ascendant_pickaxe",
-                new String[]{"AAA", " S ", " S "}
+                new String[]{"AAA", " S ", " S "},
+                8
         );
 
+
+        // AXE
         registerTool(
                 Material.NETHERITE_AXE,
                 "§dAscendant Axe",
                 "ascendant_axe",
-                new String[]{"AA ", "AS ", " S "}
+                new String[]{"AA ", "AS ", " S "},
+                13
         );
 
+
+        // SHOVEL
         registerTool(
                 Material.NETHERITE_SHOVEL,
                 "§dAscendant Shovel",
                 "ascendant_shovel",
-                new String[]{"A", "S", "S"}
+                new String[]{"A", "S", "S"},
+                7
         );
 
+
+        // HOE
         registerTool(
                 Material.NETHERITE_HOE,
                 "§dAscendant Hoe",
                 "ascendant_hoe",
-                new String[]{"AA ", " S ", " S "}
+                new String[]{"AA ", " S ", " S "},
+                5
         );
     }
 
 
-    private void registerTool(Material material, String name,
-                              String keyName, String[] shape) {
+    private void registerTool(
+            Material material,
+            String name,
+            String keyName,
+            String[] shape,
+            double damage
+    ) {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
@@ -366,18 +490,18 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                 (byte) 1
         );
 
+        // Correct weapon damage
         meta.addAttributeModifier(
                 Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(
                         new NamespacedKey(this, keyName + "_damage"),
-                        3,
+                        damage,
                         AttributeModifier.Operation.ADD_NUMBER,
-                        org.bukkit.inventory.EquipmentSlotGroup.HAND
+                        EquipmentSlotGroup.HAND
                 )
         );
 
         item.setItemMeta(meta);
-
 
         ShapedRecipe recipe = new ShapedRecipe(
                 new NamespacedKey(this, keyName),
@@ -393,6 +517,10 @@ public class VeylixAscension extends JavaPlugin implements Listener {
     }
 
 
+    // =========================================================
+    // ASCENDANT ELYTRA
+    // =========================================================
+
     private void registerAscendantElytra() {
 
         ItemStack elytra = new ItemStack(Material.ELYTRA);
@@ -404,8 +532,10 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                 "§7Flight retained."
         ));
 
+        NamespacedKey key = new NamespacedKey(this, "ascendant_elytra");
+
         meta.getPersistentDataContainer().set(
-                new NamespacedKey(this, "ascendant_elytra"),
+                key,
                 PersistentDataType.BYTE,
                 (byte) 1
         );
@@ -416,7 +546,7 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                         new NamespacedKey(this, "ascendant_elytra_armor"),
                         12,
                         AttributeModifier.Operation.ADD_NUMBER,
-                        org.bukkit.inventory.EquipmentSlotGroup.CHEST
+                        EquipmentSlotGroup.CHEST
                 )
         );
 
@@ -426,7 +556,7 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                         new NamespacedKey(this, "ascendant_elytra_toughness"),
                         8,
                         AttributeModifier.Operation.ADD_NUMBER,
-                        org.bukkit.inventory.EquipmentSlotGroup.CHEST
+                        EquipmentSlotGroup.CHEST
                 )
         );
 
@@ -436,49 +566,32 @@ public class VeylixAscension extends JavaPlugin implements Listener {
                         new NamespacedKey(this, "ascendant_elytra_knockback"),
                         0.25,
                         AttributeModifier.Operation.ADD_NUMBER,
-                        org.bukkit.inventory.EquipmentSlotGroup.CHEST
+                        EquipmentSlotGroup.CHEST
                 )
         );
 
         elytra.setItemMeta(meta);
-
 
         ShapelessRecipe recipe = new ShapelessRecipe(
                 new NamespacedKey(this, "ascendant_elytra"),
                 elytra
         );
 
-        recipe.addIngredient(exact(
-                gear(
-                        Material.NETHERITE_CHESTPLATE,
-                        "§dAscendant Chestplate",
-                        "ascendant_chestplate",
-                        9, 4, 0.1
+        recipe.addIngredient(
+                exact(
+                        armor(
+                                Material.NETHERITE_CHESTPLATE,
+                                "§dAscendant Chestplate",
+                                "ascendant_chestplate",
+                                9,
+                                4,
+                                0.10
+                        )
                 )
-        ));
+        );
 
         recipe.addIngredient(Material.ELYTRA);
 
         getServer().addRecipe(recipe);
-    }
-
-
-    @EventHandler
-    public void onPrepareCraft(PrepareItemCraftEvent event) {
-
-        ItemStack[] contents = event.getInventory().getMatrix();
-
-        for (ItemStack item : contents) {
-            if (item != null && item.getType() == Material.NETHERITE_INGOT) {
-
-                if (isTagged(item, ascendantKey)) {
-                    continue;
-                }
-
-                if (isTagged(item, enderiteKey)) {
-                    continue;
-                }
-            }
-        }
     }
 }
